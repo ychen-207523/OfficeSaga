@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
+
 public class RegisterRequest {
 
     @Email
@@ -24,6 +26,11 @@ public class RegisterRequest {
 
     @Size(max = 50)
     private String gender;
+
+    private LocalDate birthDate;
+
+    @Size(max = 1000)
+    private String bio;
 
     public String getEmail() {
         return email;
@@ -63,5 +70,21 @@ public class RegisterRequest {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 }

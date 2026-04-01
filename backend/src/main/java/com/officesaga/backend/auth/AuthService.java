@@ -46,6 +46,8 @@ public class AuthService {
         profile.setDisplayName(request.getDisplayName().trim());
         profile.setJobTitle(normalizeOptional(request.getJobTitle()));
         profile.setGender(normalizeOptional(request.getGender()));
+        profile.setBirthDate(request.getBirthDate());
+        profile.setBio(normalizeOptional(request.getBio()));
 
         profileRepository.save(profile);
 
