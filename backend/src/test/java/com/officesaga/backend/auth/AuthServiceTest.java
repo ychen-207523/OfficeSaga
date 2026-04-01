@@ -14,6 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,6 +47,8 @@ class AuthServiceTest {
         request.setDisplayName("  Test User ");
         request.setJobTitle(" Developer ");
         request.setGender(" Female ");
+        request.setBirthDate(LocalDate.of(1998, 5, 10));
+        request.setBio(" Enjoys building tools for teams. ");
 
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("hashed-password");
@@ -70,6 +74,8 @@ class AuthServiceTest {
         assertEquals("Test User", savedProfile.getDisplayName());
         assertEquals("Developer", savedProfile.getJobTitle());
         assertEquals("Female", savedProfile.getGender());
+        assertEquals(LocalDate.of(1998, 5, 10), savedProfile.getBirthDate());
+        assertEquals("Enjoys building tools for teams.", savedProfile.getBio());
         assertEquals(1L, response.getUserId());
         assertEquals("test@example.com", response.getEmail());
         assertEquals("Test User", response.getDisplayName());
@@ -102,6 +108,7 @@ class AuthServiceTest {
         request.setDisplayName("Test User");
         request.setJobTitle("   ");
         request.setGender("   ");
+        request.setBio("   ");
 
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("hashed-password");
@@ -119,6 +126,7 @@ class AuthServiceTest {
         Profile savedProfile = profileCaptor.getValue();
         assertNull(savedProfile.getJobTitle());
         assertNull(savedProfile.getGender());
+        assertNull(savedProfile.getBio());
     }
 
     private void setUserId(User user, Long id) {
