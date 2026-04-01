@@ -16,6 +16,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "profiles")
@@ -41,6 +42,13 @@ public class Profile {
     @Size(max = 50)
     @Column(length = 50)
     private String gender;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
+    @Size(max = 1000)
+    @Column(length = 1000)
+    private String bio;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -94,6 +102,22 @@ public class Profile {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public Instant getCreatedAt() {
