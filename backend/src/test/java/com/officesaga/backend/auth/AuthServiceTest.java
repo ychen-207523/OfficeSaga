@@ -1,5 +1,7 @@
 package com.officesaga.backend.auth;
 
+import com.officesaga.backend.auth.dto.LoginRequest;
+import com.officesaga.backend.auth.dto.LoginResponse;
 import com.officesaga.backend.auth.dto.RegisterRequest;
 import com.officesaga.backend.auth.dto.RegisterResponse;
 import com.officesaga.backend.profile.Profile;
@@ -15,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -127,6 +130,65 @@ class AuthServiceTest {
         assertNull(savedProfile.getJobTitle());
         assertNull(savedProfile.getGender());
         assertNull(savedProfile.getBio());
+    }
+
+    @Test
+    void loginShouldReturnUserInfoWhenCredentialsAreValid() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("  test@example.com ");
+        request.setPassword("password123");
+
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setPasswordHash("hashed-password");
+        setUserId(user, 3L);
+
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "hashed-password")).thenReturn(true);
+
+        LoginResponse response = authService.login(request);
+
+        assertEquals(3L, response.getUserId());
+        assertEquals("test@example.com", response.getEmail());
+        assertEquals("Login successful.", response.getMessage());
+    }
+
+    @Test
+    void loginShouldRejectUnknownEmail() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("missing@example.com");
+        request.setPassword("password123");
+
+        when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.login(request)
+        );
+
+        assertEquals("Invalid email or password.", exception.getMessage());
+    }
+
+    @Test
+    void loginShouldRejectWrongPassword() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("test@example.com");
+        request.setPassword("wrong-password");
+
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setPasswordHash("hashed-password");
+        setUserId(user, 4L);
+
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrong-password", "hashed-password")).thenReturn(false);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.login(request)
+        );
+
+        assertEquals("Invalid email or password.", exception.getMessage());
     }
 
     private void setUserId(User user, Long id) {
