@@ -1,5 +1,7 @@
 package com.officesaga.backend.auth;
 
+import com.officesaga.backend.auth.dto.LoginRequest;
+import com.officesaga.backend.auth.dto.LoginResponse;
 import com.officesaga.backend.auth.dto.RegisterRequest;
 import com.officesaga.backend.auth.dto.RegisterResponse;
 import com.officesaga.backend.profile.Profile;
@@ -55,6 +57,29 @@ public class AuthService {
                 savedUser.getId(),
                 savedUser.getEmail(),
                 profile.getDisplayName()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public LoginResponse login(LoginRequest request) {
+        String normalizedEmail = request.getEmail().trim().toLowerCase();
+
+        User user = userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
+
+        boolean passwordMatches = passwordEncoder.matches(
+                request.getPassword(),
+                user.getPasswordHash()
+        );
+
+        if (!passwordMatches) {
+            throw new IllegalArgumentException("Invalid email or password.");
+        }
+
+        return new LoginResponse(
+                user.getId(),
+                user.getEmail(),
+                "Login successful."
         );
     }
 

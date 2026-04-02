@@ -1,5 +1,7 @@
 package com.officesaga.backend.auth;
 
+import com.officesaga.backend.auth.dto.LoginRequest;
+import com.officesaga.backend.auth.dto.LoginResponse;
 import com.officesaga.backend.auth.dto.RegisterRequest;
 import com.officesaga.backend.auth.dto.RegisterResponse;
 import jakarta.validation.Valid;
@@ -24,5 +26,11 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public RegisterResponse register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
+    }
+
+    @PostMapping("/login")
+    @ResponseStatus(HttpStatus.OK)
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+        return authService.login(request);
     }
 }

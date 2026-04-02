@@ -34,6 +34,11 @@ The long-term goal is to make work history feel more like an evolving story than
 
 - MySQL
 
+### Messaging and Caching
+
+- Redis
+- Kafka
+
 ### Cloud / Platform
 
 - Cloud deployment for frontend, backend, and database
@@ -74,6 +79,30 @@ The long-term goal is to make work history feel more like an evolving story than
 - Save the generated text for later review
 - Allow the user to revise the summary before finalizing it
 
+### 6. AI Work Diary Summaries
+
+- Turn daily work diary entries into cleaner summaries
+- Highlight achievements, blockers, and collaborators
+- Build a more useful work history for later review
+
+### 7. AI Coworker Messages
+
+- Generate coworker-style messages based on project context
+- Simulate workplace interactions to make the app feel more alive
+- Support future personality and relationship systems for colleagues
+
+### 8. Redis Integration
+
+- Cache frequently accessed data such as profile or dashboard views
+- Support future auth protections such as login attempt throttling
+- Store temporary state for async features when needed
+
+### 9. Kafka Integration
+
+- Publish project, task, or diary events for async processing
+- Trigger AI summary generation after project or task completion
+- Trigger coworker message generation from in-app activity
+
 ## Initial Product Scope
 
 The initial version of OfficeSaga will focus on a single user per account:
@@ -101,5 +130,9 @@ The first milestone is:
 - Game-style progression and achievements
 - Relationship tracking with colleagues
 - Timeline and story-based visualization
+- AI-powered daily work diary summaries
+- AI-generated coworker interactions
+- Redis-based caching and temporary state management
+- Kafka-based event-driven processing
 - Multi-user collaboration
 - Cloud-based sync and deployment improvements
