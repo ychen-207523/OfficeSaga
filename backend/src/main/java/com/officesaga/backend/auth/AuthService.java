@@ -18,15 +18,18 @@ public class AuthService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthService(
             UserRepository userRepository,
             ProfileRepository profileRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
     ) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Transactional
@@ -76,10 +79,12 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid email or password.");
         }
 
+        String token = jwtService.generateToken(user);
+
         return new LoginResponse(
                 user.getId(),
                 user.getEmail(),
-                "Login successful."
+                token
         );
     }
 
