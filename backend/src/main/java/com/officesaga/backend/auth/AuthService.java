@@ -1,7 +1,7 @@
 package com.officesaga.backend.auth;
 
 import com.officesaga.backend.auth.dto.LoginRequest;
-import com.officesaga.backend.auth.dto.LoginResponse;
+import com.officesaga.backend.auth.dto.LoginResult;
 import com.officesaga.backend.auth.dto.RegisterRequest;
 import com.officesaga.backend.auth.dto.RegisterResponse;
 import com.officesaga.backend.profile.Profile;
@@ -18,15 +18,18 @@ public class AuthService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthService(
             UserRepository userRepository,
             ProfileRepository profileRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
     ) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Transactional
@@ -61,11 +64,11 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public LoginResponse login(LoginRequest request) {
+    public LoginResult login(LoginRequest request) {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
 
         User user = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
+                .orElseThrow(InvalidCredentialsException::new);
 
         boolean passwordMatches = passwordEncoder.matches(
                 request.getPassword(),
@@ -73,13 +76,15 @@ public class AuthService {
         );
 
         if (!passwordMatches) {
-            throw new IllegalArgumentException("Invalid email or password.");
+            throw new InvalidCredentialsException();
         }
 
-        return new LoginResponse(
+        String token = jwtService.generateToken(user);
+
+        return new LoginResult(
                 user.getId(),
                 user.getEmail(),
-                "Login successful."
+                token
         );
     }
 
