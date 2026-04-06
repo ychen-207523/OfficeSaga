@@ -68,7 +68,7 @@ public class AuthService {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
 
         User user = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
+                .orElseThrow(InvalidCredentialsException::new);
 
         boolean passwordMatches = passwordEncoder.matches(
                 request.getPassword(),
@@ -76,7 +76,7 @@ public class AuthService {
         );
 
         if (!passwordMatches) {
-            throw new IllegalArgumentException("Invalid email or password.");
+            throw new InvalidCredentialsException();
         }
 
         String token = jwtService.generateToken(user);
