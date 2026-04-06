@@ -1,7 +1,7 @@
 package com.officesaga.backend.auth;
 
 import com.officesaga.backend.auth.dto.LoginRequest;
-import com.officesaga.backend.auth.dto.LoginResponse;
+import com.officesaga.backend.auth.dto.LoginResult;
 import com.officesaga.backend.auth.dto.RegisterRequest;
 import com.officesaga.backend.auth.dto.RegisterResponse;
 import com.officesaga.backend.profile.Profile;
@@ -136,7 +136,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void loginShouldReturnUserInfoWhenCredentialsAreValid() {
+    void loginShouldReturnTokenWhenCredentialsAreValid() {
         LoginRequest request = new LoginRequest();
         request.setEmail("  test@example.com ");
         request.setPassword("password123");
@@ -150,11 +150,11 @@ class AuthServiceTest {
         when(passwordEncoder.matches("password123", "hashed-password")).thenReturn(true);
         when(jwtService.generateToken(user)).thenReturn("jwt-token");
 
-        LoginResponse response = authService.login(request);
+        LoginResult result = authService.login(request);
 
-        assertEquals(3L, response.getUserId());
-        assertEquals("test@example.com", response.getEmail());
-        assertEquals("jwt-token", response.getToken());
+        assertEquals(3L, result.getUserId());
+        assertEquals("test@example.com", result.getEmail());
+        assertEquals("jwt-token", result.getToken());
     }
 
     @Test
@@ -165,8 +165,8 @@ class AuthServiceTest {
 
         when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        InvalidCredentialsException exception = assertThrows(
+                InvalidCredentialsException.class,
                 () -> authService.login(request)
         );
 
@@ -187,8 +187,8 @@ class AuthServiceTest {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrong-password", "hashed-password")).thenReturn(false);
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        InvalidCredentialsException exception = assertThrows(
+                InvalidCredentialsException.class,
                 () -> authService.login(request)
         );
 
