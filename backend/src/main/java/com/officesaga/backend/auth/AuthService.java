@@ -1,7 +1,7 @@
 package com.officesaga.backend.auth;
 
 import com.officesaga.backend.auth.dto.LoginRequest;
-import com.officesaga.backend.auth.dto.LoginResponse;
+import com.officesaga.backend.auth.dto.LoginResult;
 import com.officesaga.backend.auth.dto.RegisterRequest;
 import com.officesaga.backend.auth.dto.RegisterResponse;
 import com.officesaga.backend.profile.Profile;
@@ -64,7 +64,7 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public LoginResponse login(LoginRequest request) {
+    public LoginResult login(LoginRequest request) {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
 
         User user = userRepository.findByEmail(normalizedEmail)
@@ -81,7 +81,7 @@ public class AuthService {
 
         String token = jwtService.generateToken(user);
 
-        return new LoginResponse(
+        return new LoginResult(
                 user.getId(),
                 user.getEmail(),
                 token
