@@ -18,3 +18,5 @@ security:
   jwt:
     secret: ${JWT_SECRET}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
+    cookie-name: ${JWT_COOKIE_NAME:auth_token}
+    cookie-secure: ${JWT_COOKIE_SECURE:false}
