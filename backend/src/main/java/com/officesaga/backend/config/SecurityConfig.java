@@ -1,4 +1,4 @@
-﻿package com.officesaga.backend.config;
+package com.officesaga.backend.config;
 
 import com.officesaga.backend.auth.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
