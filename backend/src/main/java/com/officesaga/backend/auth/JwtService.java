@@ -1,7 +1,9 @@
 package com.officesaga.backend.auth;
 
 import com.officesaga.backend.user.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,5 +38,36 @@ public class JwtService {
                 .expiration(Date.from(now.plus(expiration)))
                 .signWith(signingKey)
                 .compact();
+    }
+
+    public Long extractUserId(String token) {
+        return Long.valueOf(extractAllClaims(token).getSubject());
+    }
+
+    public boolean isTokenValid(String token, User user) {
+        Long userId = extractUserId(token);
+        return user.getId().equals(userId) && !isTokenExpired(token);
+    }
+
+    public boolean isTokenInvalid(String token) {
+        try {
+            extractAllClaims(token);
+            return false;
+        } catch (JwtException | IllegalArgumentException exception) {
+            return true;
+        }
+    }
+
+    private boolean isTokenExpired(String token) {
+        Date expirationDate = extractAllClaims(token).getExpiration();
+        return expirationDate.before(new Date());
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(signingKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
