@@ -67,4 +67,20 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, authCookie.toString())
                 .body(response);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        ResponseCookie expiredCookie = ResponseCookie.from(jwtCookieName, "")
+                .httpOnly(true)
+                .secure(jwtCookieSecure)
+                .path("/")
+                .sameSite("Lax")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .header(HttpHeaders.SET_COOKIE, expiredCookie.toString())
+                .build();
+    }
 }
