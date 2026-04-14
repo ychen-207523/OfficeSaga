@@ -93,6 +93,14 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void logoutShouldClearAuthCookie() throws Exception {
+        mockMvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().exists("auth_token"))
+                .andExpect(cookie().value("auth_token", ""));
+    }
+
     private User createUser(Long id, String email, String passwordHash) {
         User user = new User();
         user.setEmail(email);
