@@ -1,5 +1,6 @@
 package com.officesaga.backend.auth;
 
+import com.officesaga.backend.profile.Profile;
 import com.officesaga.backend.profile.ProfileRepository;
 import com.officesaga.backend.user.User;
 import com.officesaga.backend.user.UserRepository;
@@ -91,6 +92,32 @@ class AuthFlowIntegrationTest {
     void currentUserShouldRejectAnonymousRequest() throws Exception {
         mockMvc.perform(get("/api/me"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void currentUserProfileShouldReturnProfileForAuthenticatedUser() throws Exception {
+        User user = createUser(1L, "test@example.com", "hashed-password");
+        Profile profile = new Profile();
+        profile.setUser(user);
+        profile.setDisplayName("Test User");
+        profile.setJobTitle("Developer");
+        profile.setGender("Female");
+        profile.setBio("Enjoys building tools for teams.");
+
+        when(jwtService.isTokenInvalid("jwt-token")).thenReturn(false);
+        when(jwtService.extractUserId("jwt-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtService.isTokenValid("jwt-token", user)).thenReturn(true);
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+
+        mockMvc.perform(get("/api/me/profile")
+                        .cookie(new Cookie("auth_token", "jwt-token")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.displayName").value("Test User"))
+                .andExpect(jsonPath("$.jobTitle").value("Developer"))
+                .andExpect(jsonPath("$.gender").value("Female"))
+                .andExpect(jsonPath("$.bio").value("Enjoys building tools for teams."));
     }
 
     @Test
