@@ -159,6 +159,47 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
+    void currentUserProfileShouldRejectBlankDisplayNameOnUpdate() throws Exception {
+        User user = createUser(1L, "test@example.com", "hashed-password");
+
+        when(jwtService.isTokenInvalid("jwt-token")).thenReturn(false);
+        when(jwtService.extractUserId("jwt-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtService.isTokenValid("jwt-token", user)).thenReturn(true);
+
+        mockMvc.perform(put("/api/me/profile")
+                        .cookie(new Cookie("auth_token", "jwt-token"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "displayName": "   ",
+                                  "jobTitle": "Developer",
+                                  "gender": "Female",
+                                  "birthDate": "1998-05-10",
+                                  "bio": "Profile bio."
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("displayName must not be blank"));
+    }
+
+    @Test
+    void currentUserProfileShouldRejectAnonymousUpdate() throws Exception {
+        mockMvc.perform(put("/api/me/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "displayName": "Updated User",
+                                  "jobTitle": "Developer",
+                                  "gender": "Female",
+                                  "birthDate": "1998-05-10",
+                                  "bio": "Profile bio."
+                                }
+                                """))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void logoutShouldClearAuthCookie() throws Exception {
         mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isNoContent())
