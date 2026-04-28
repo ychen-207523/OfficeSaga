@@ -1,5 +1,6 @@
 package com.officesaga.backend.auth;
 
+import com.officesaga.backend.profile.Profile;
 import com.officesaga.backend.profile.ProfileRepository;
 import com.officesaga.backend.user.User;
 import com.officesaga.backend.user.UserRepository;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -90,6 +92,110 @@ class AuthFlowIntegrationTest {
     @Test
     void currentUserShouldRejectAnonymousRequest() throws Exception {
         mockMvc.perform(get("/api/me"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void currentUserProfileShouldReturnProfileForAuthenticatedUser() throws Exception {
+        User user = createUser(1L, "test@example.com", "hashed-password");
+        Profile profile = new Profile();
+        profile.setUser(user);
+        profile.setDisplayName("Test User");
+        profile.setJobTitle("Developer");
+        profile.setGender("Female");
+        profile.setBio("Enjoys building tools for teams.");
+
+        when(jwtService.isTokenInvalid("jwt-token")).thenReturn(false);
+        when(jwtService.extractUserId("jwt-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtService.isTokenValid("jwt-token", user)).thenReturn(true);
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+
+        mockMvc.perform(get("/api/me/profile")
+                        .cookie(new Cookie("auth_token", "jwt-token")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.displayName").value("Test User"))
+                .andExpect(jsonPath("$.jobTitle").value("Developer"))
+                .andExpect(jsonPath("$.gender").value("Female"))
+                .andExpect(jsonPath("$.bio").value("Enjoys building tools for teams."));
+    }
+
+    @Test
+    void currentUserProfileShouldUpdateProfileForAuthenticatedUser() throws Exception {
+        User user = createUser(1L, "test@example.com", "hashed-password");
+        Profile profile = new Profile();
+        profile.setUser(user);
+        profile.setDisplayName("Old Name");
+        profile.setJobTitle("Old Title");
+        profile.setGender("Female");
+        profile.setBio("Old bio.");
+
+        when(jwtService.isTokenInvalid("jwt-token")).thenReturn(false);
+        when(jwtService.extractUserId("jwt-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtService.isTokenValid("jwt-token", user)).thenReturn(true);
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+
+        mockMvc.perform(put("/api/me/profile")
+                        .cookie(new Cookie("auth_token", "jwt-token"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "displayName": " Updated User ",
+                                  "jobTitle": " Senior Developer ",
+                                  "gender": "Female",
+                                  "birthDate": "1998-05-10",
+                                  "bio": " Updated profile bio. "
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.displayName").value("Updated User"))
+                .andExpect(jsonPath("$.jobTitle").value("Senior Developer"))
+                .andExpect(jsonPath("$.gender").value("Female"))
+                .andExpect(jsonPath("$.birthDate").value("1998-05-10"))
+                .andExpect(jsonPath("$.bio").value("Updated profile bio."));
+    }
+
+    @Test
+    void currentUserProfileShouldRejectBlankDisplayNameOnUpdate() throws Exception {
+        User user = createUser(1L, "test@example.com", "hashed-password");
+
+        when(jwtService.isTokenInvalid("jwt-token")).thenReturn(false);
+        when(jwtService.extractUserId("jwt-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtService.isTokenValid("jwt-token", user)).thenReturn(true);
+
+        mockMvc.perform(put("/api/me/profile")
+                        .cookie(new Cookie("auth_token", "jwt-token"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "displayName": "   ",
+                                  "jobTitle": "Developer",
+                                  "gender": "Female",
+                                  "birthDate": "1998-05-10",
+                                  "bio": "Profile bio."
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("displayName must not be blank"));
+    }
+
+    @Test
+    void currentUserProfileShouldRejectAnonymousUpdate() throws Exception {
+        mockMvc.perform(put("/api/me/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "displayName": "Updated User",
+                                  "jobTitle": "Developer",
+                                  "gender": "Female",
+                                  "birthDate": "1998-05-10",
+                                  "bio": "Profile bio."
+                                }
+                                """))
                 .andExpect(status().isForbidden());
     }
 
